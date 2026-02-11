@@ -81,6 +81,7 @@ Int UMF_triplet_nomap_nox
     /* ---------------------------------------------------------------------- */
 
     /* use W as workspace for row counts (including duplicates) */
+    UMFPACK_IVDEP
     for (i = 0 ; i < n_row ; i++)
     {
 	W [i] = 0 ;

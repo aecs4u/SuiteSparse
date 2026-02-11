@@ -9,7 +9,7 @@ default: all
 # for statement coverage, picky tests
 C = gcc -Wall -W -Wshadow -Wmissing-prototypes -Wstrict-prototypes \
    	-Wredundant-decls -Wnested-externs -Wdisabled-optimization \
-	-std=c11 -g --coverage -fprofile-abs-path -fexceptions \
+	-std=c23 -g --coverage -fprofile-abs-path -fexceptions \
 	-fopenmp
 
 LDLIBS = -L../../lib \

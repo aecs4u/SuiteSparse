@@ -10,7 +10,7 @@ V =
 CC = gcc
 CFLAGS = -O -g --coverage -fprofile-abs-path \
     	-Wall -W -Wshadow -Wmissing-prototypes -Wstrict-prototypes \
-    	-Wredundant-decls -Wnested-externs -Wdisabled-optimization -std=c11 \
+    	-Wredundant-decls -Wnested-externs -Wdisabled-optimization -std=c23 \
         -Wno-unused-but-set-variable \
 	-Wno-unused-parameter -I../Include -I../Demo -I../../SuiteSparse_config \
         -DTEST_COVERAGE

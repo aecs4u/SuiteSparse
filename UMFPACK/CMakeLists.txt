@@ -121,6 +121,12 @@ include_directories ( Source Include )
 # dynamic umfpack library properties
 #-------------------------------------------------------------------------------
 
+# Source2/ contains 341 auto-generated .c files for all type/index variants:
+#   - Data types: real (d) and complex (z)
+#   - Index types: int32 (i) and int64 (l)
+#   - Variants: with/without FIXQ flag
+# Generated from the 84 template files in Source/ via MATLAB/create_source2.m.
+# Each generated file #includes its Source/ template with appropriate #defines.
 file ( GLOB UMFPACK_SOURCES "Source2/*.c" )
 
 if ( BUILD_SHARED_LIBS )
@@ -128,7 +134,7 @@ if ( BUILD_SHARED_LIBS )
 
     set_target_properties ( UMFPACK PROPERTIES
         VERSION ${UMFPACK_VERSION_MAJOR}.${UMFPACK_VERSION_MINOR}.${UMFPACK_VERSION_SUB}
-        C_STANDARD 11
+        C_STANDARD 23
         C_STANDARD_REQUIRED ON
         OUTPUT_NAME umfpack
         SOVERSION ${UMFPACK_VERSION_MAJOR}
@@ -152,7 +158,7 @@ if ( BUILD_STATIC_LIBS )
     add_library ( UMFPACK_static STATIC ${UMFPACK_SOURCES} )
 
     set_target_properties ( UMFPACK_static PROPERTIES
-        C_STANDARD 11
+        C_STANDARD 23
         C_STANDARD_REQUIRED ON
         OUTPUT_NAME umfpack
         PUBLIC_HEADER "Include/umfpack.h" )
@@ -255,8 +261,17 @@ if ( BUILD_STATIC_LIBS )
 endif ( )
 
 #-------------------------------------------------------------------------------
-# check compiler features
+# check compiler features: vectorization pragma detection
 #-------------------------------------------------------------------------------
+# UMFPACK uses UMFPACK_IVDEP pragmas (45 occurrences across 10 source files)
+# to hint the compiler about loop-independent dependencies, enabling SIMD
+# vectorization of performance-critical inner loops (assembly, scaling, BLAS).
+# The detection below finds the best pragma syntax for the current compiler:
+#   GCC:   #pragma GCC ivdep
+#   Clang: #pragma clang loop vectorize(enable)
+#   Intel: #pragma ivdep
+#   MSVC:  #pragma loop(ivdep)
+# If no pragma is supported, UMFPACK_IVDEP expands to nothing (safe fallback).
 
 include ( CheckSourceCompiles )
 

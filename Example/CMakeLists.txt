@@ -131,7 +131,7 @@ if ( BUILD_SHARED_LIBS )
     add_library ( my SHARED ${MY_SOURCES} )
     set_target_properties ( my PROPERTIES
         VERSION ${MY_VERSION_MAJOR}.${MY_VERSION_MINOR}.${MY_VERSION_PATCH}
-        C_STANDARD 11
+        C_STANDARD 23
         C_STANDARD_REQUIRED ON
         SOVERSION ${MY_VERSION_MAJOR}
         PUBLIC_HEADER "Include/my.h"
@@ -146,7 +146,7 @@ if ( BUILD_STATIC_LIBS )
     add_library ( my_static STATIC ${MY_SOURCES} )
     set_target_properties ( my_static PROPERTIES
         VERSION ${MY_VERSION_MAJOR}.${MY_VERSION_MINOR}.${MY_VERSION_PATCH}
-        C_STANDARD 11
+        C_STANDARD 23
         C_STANDARD_REQUIRED ON
         OUTPUT_NAME my
         SOVERSION ${MY_VERSION_MAJOR} )

@@ -45,7 +45,7 @@ file ( GLOB MY_SOURCES "*.cc" )
 if ( BUILD_SHARED_LIBS )
     add_executable ( ${TEST_SHARED_BIN} ${MY_SOURCES} )
     set_target_properties ( ${TEST_SHARED_BIN} PROPERTIES
-        C_STANDARD 11
+        C_STANDARD 23
         C_STANDARD_REQUIRED ON )
 endif ( )
 
@@ -56,7 +56,7 @@ endif ( )
 if ( BUILD_STATIC_LIBS )
     add_executable ( ${TEST_STATIC_BIN} ${MY_SOURCES} )
     set_target_properties ( ${TEST_STATIC_BIN} PROPERTIES
-        C_STANDARD 11
+        C_STANDARD 23
         C_STANDARD_REQUIRED ON )
 endif ( )
 
