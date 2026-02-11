@@ -75,6 +75,11 @@ include_directories ( Source Include )
 # dynamic amd library properties
 #-------------------------------------------------------------------------------
 
+# AMD (Approximate Minimum Degree) ordering algorithm for sparse matrices.
+# Source/ contains the core ordering algorithm implemented with int32 (amd_*.c)
+# and int64 (amd_l_*.c) index variants. The algorithm uses graph-based sparse
+# matrix ordering with irregular memory access patterns optimized for cache
+# efficiency rather than computational throughput (not amenable to SIMD).
 if ( SUITESPARSE_HAS_FORTRAN )
     file ( GLOB AMD_SOURCES "Source/*.c" "Source/*.f" )
 else ( )

@@ -369,6 +369,14 @@ include_directories ( Check Cholesky Utility MatrixOps Modify Partition
 # dynamic cholmod library properties
 #-------------------------------------------------------------------------------
 
+# CHOLMOD modules (415 source files, ~70K lines):
+#   Check/       - matrix checking and statistics
+#   Cholesky/    - symbolic and numeric Cholesky factorization
+#   Utility/     - common routines and memory management
+#   MatrixOps/   - matrix operations (add, multiply, transpose, norm)
+#   Modify/      - factor modification (update/downdate, rowadd/rowdel)
+#   Partition/   - graph partitioning via METIS/CCOLAMD
+#   Supernodal/  - supernodal Cholesky factorization (BLAS-optimized dense blocks)
 file ( GLOB CHOLMOD_SOURCES "Check/cholmod_*.c" "Cholesky/cholmod_*.c"
     "Utility/cholmod_*.c" "MatrixOps/cholmod_*.c" "Modify/cholmod_*.c"
     "Partition/cholmod_*.c" "Supernodal/cholmod_*.c" )

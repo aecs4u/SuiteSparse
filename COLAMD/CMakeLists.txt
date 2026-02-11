@@ -68,6 +68,8 @@ include_directories ( Source Include )
 # dynamic colamd library properties
 #-------------------------------------------------------------------------------
 
+# COLAMD (Column Approximate Minimum Degree) ordering algorithm.
+# Source/ contains int32/int64 variants for column-oriented sparse matrix ordering.
 file ( GLOB COLAMD_SOURCES "Source/*.c" )
 
 if ( BUILD_SHARED_LIBS )

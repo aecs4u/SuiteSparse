@@ -68,6 +68,8 @@ include_directories ( Source Include )
 # dynamic ccolamd library properties
 #-------------------------------------------------------------------------------
 
+# CCOLAMD (Constrained COLAMD) ordering algorithm with constraint sets.
+# Source/ contains int32/int64 variants for constrained column ordering.
 file ( GLOB CCOLAMD_SOURCES "Source/*.c" )
 
 if ( BUILD_SHARED_LIBS )
