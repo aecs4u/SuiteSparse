@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Benchmark: {{ benchmark_name }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>🔬 Benchmark: {{ benchmark_name }}</h2>
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+            <div>
+                <strong>Test Name:</strong> {{ benchmark_name }}<br>
+                <strong>Module:</strong> <span id="module">Loading...</span><br>
+                <strong>Category:</strong> <span id="category">Loading...</span>
+            </div>
+            <div>
+                <strong>Total Executions:</strong> <span id="executions">Loading...</span><br>
+                <strong>BLAS Vendors:</strong> <span id="vendors">Loading...</span><br>
+                <strong>Date Range:</strong> <span id="dateRange">Loading...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>📊 Performance Comparison</h2>
+    </div>
+    <div class="card-body">
+        <div class="chart-container">
+            <canvas id="comparisonChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>📈 Execution History</h2>
+    </div>
+    <div class="card-body">
+        <table id="historyTable">
+            <thead>
+                <tr>
+                    <th>Run ID</th>
+                    <th>Timestamp</th>
+                    <th>BLAS Vendor</th>
+                    <th>Time (sec)</th>
+                    <th>CPU Model</th>
+                </tr>
+            </thead>
+            <tbody id="historyBody">
+                <tr><td colspan="5" style="text-align: center;">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>📉 Statistics</h2>
+    </div>
+    <div class="card-body">
+        <div id="statistics"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const benchmarkName = "{{ benchmark_name }}";
+
+// Benchmark metadata
+const benchmarkInfo = {
+    'AMD_simple': {
+        module: 'AMD (Approximate Minimum Degree)',
+        category: 'Ordering',
+        blasImpact: 'Low (< 5%)',
+        description: 'Basic sparse matrix ordering operations'
+    },
+    'CHOLMOD_quick': {
+        module: 'CHOLMOD (Sparse Cholesky)',
+        category: 'Factorization (BLAS Level 3)',
+        blasImpact: 'High (70-80%)',
+        description: 'Supernodal Cholesky factorization'
+    },
+    'UMFPACK_quick': {
+        module: 'UMFPACK (Multifrontal LU)',
+        category: 'Factorization (BLAS Level 3)',
+        blasImpact: 'High (60-75%)',
+        description: 'Unsymmetric LU factorization'
+    },
+    'GraphBLAS_quick': {
+        module: 'GraphBLAS',
+        category: 'Graph Operations',
+        blasImpact: 'Medium (30-40%)',
+        description: 'Graph matrix operations'
+    }
+};
+
+// Display benchmark info
+const info = benchmarkInfo[benchmarkName] || {
+    module: 'Unknown',
+    category: 'Unknown',
+    blasImpact: 'Unknown'
+};
+
+document.getElementById('module').textContent = info.module;
+document.getElementById('category').textContent = info.category;
+
+// Load comparison data
+fetch(`/api/benchmarks/${benchmarkName}/compare`)
+    .then(r => r.json())
+    .then(data => {
+        if (!data || data.length === 0) {
+            document.getElementById('comparisonChart').parentElement.innerHTML = '<p style="text-align: center; color: #999;">No data available</p>';
+            return;
+        }
+
+        // Update metadata
+        const vendors = [...new Set(data.map(d => d.blas_vendor))];
+        const dates = data.map(d => d.timestamp.split('T')[0]);
+        document.getElementById('executions').textContent = data.length;
+        document.getElementById('vendors').textContent = vendors.join(', ');
+        document.getElementById('dateRange').textContent = dates.length > 0 ? `${dates[dates.length - 1]} to ${dates[0]}` : 'N/A';
+
+        // Group by BLAS vendor
+        const grouped = {};
+        data.forEach(d => {
+            if (!grouped[d.blas_vendor]) grouped[d.blas_vendor] = [];
+            grouped[d.blas_vendor].push(d.time_sec);
+        });
+
+        // Create comparison chart
+        new Chart(document.getElementById('comparisonChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(grouped),
+                datasets: [{
+                    label: 'Average Time (seconds)',
+                    data: Object.values(grouped).map(times => times.reduce((a,b) => a+b, 0) / times.length),
+                    backgroundColor: ['rgba(102, 126, 234, 0.8)', 'rgba(118, 75, 162, 0.8)', 'rgba(245, 87, 108, 0.8)'],
+                    borderColor: ['rgb(102, 126, 234)', 'rgb(118, 75, 162)', 'rgb(245, 87, 108)'],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: `${benchmarkName} - Average Performance by BLAS Vendor`,
+                        font: { size: 16 }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Time (seconds, lower is better)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Calculate statistics
+        const statsHtml = Object.entries(grouped).map(([vendor, times]) => {
+            const avg = times.reduce((a,b) => a+b, 0) / times.length;
+            const min = Math.min(...times);
+            const max = Math.max(...times);
+            const stdDev = Math.sqrt(times.reduce((sq, n) => sq + Math.pow(n - avg, 2), 0) / times.length);
+
+            return `
+                <div style="background: #f5f7fa; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+                    <h3 style="color: #667eea; margin-bottom: 15px;">${vendor}</h3>
+                    <table style="width: 100%;">
+                        <tr><td><strong>Executions:</strong></td><td>${times.length}</td></tr>
+                        <tr><td><strong>Average:</strong></td><td>${avg.toFixed(6)} sec</td></tr>
+                        <tr><td><strong>Min:</strong></td><td>${min.toFixed(6)} sec</td></tr>
+                        <tr><td><strong>Max:</strong></td><td>${max.toFixed(6)} sec</td></tr>
+                        <tr><td><strong>Std Dev:</strong></td><td>${stdDev.toFixed(6)} sec</td></tr>
+                    </table>
+                </div>
+            `;
+        }).join('');
+
+        document.getElementById('statistics').innerHTML = statsHtml;
+
+        // Populate history table
+        const tbody = document.getElementById('historyBody');
+        tbody.innerHTML = data.map(d => `
+            <tr>
+                <td>${d.run_id}</td>
+                <td>${d.timestamp}</td>
+                <td>${d.blas_vendor}</td>
+                <td>${d.time_sec.toFixed(6)}</td>
+                <td>${d.cpu_model}</td>
+            </tr>
+        `).join('');
+    })
+    .catch(err => {
+        console.error(err);
+        document.getElementById('comparisonChart').parentElement.innerHTML = '<p style="color: #f5576c; text-align: center;">Failed to load benchmark data</p>';
+    });
+</script>
+{% endblock %}

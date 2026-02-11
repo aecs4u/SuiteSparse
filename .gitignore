@@ -220,3 +220,40 @@ ssget/files/ssstats_old.csv
 # Do not ignore this file
 !.gitignore
 
+
+# Smart Build System artifacts
+build/
+build_*/
+/mnt/mobile/tmp/SuiteSparse/
+.build_state
+.smart_build/
+
+# Benchmark results
+benchmarks/results/*.txt
+benchmarks/results/*.csv
+benchmarks/results/*.db
+benchmarks/results/*.db-journal
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+
+# Webapp artifacts
+webapp/.webapp.pid
+/tmp/suitesparse_webapp.log
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Backup files
+*.bak
+*.original
+Makefile.original

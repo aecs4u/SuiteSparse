@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Benchmarks{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>🔬 Benchmark Test Suites</h2>
+    </div>
+    <div class="card-body">
+        <p>Each benchmark tests specific operations within SuiteSparse modules. Click on a benchmark to see its execution history and detailed statistics.</p>
+    </div>
+</div>
+
+<div class="module-grid">
+    <div class="module-card" style="cursor: pointer;" onclick="location.href='/benchmarks/AMD_simple'">
+        <h3>AMD_simple</h3>
+        <div style="margin-bottom: 10px;">
+            <span class="badge badge-sparse">Ordering</span>
+            <span class="badge" style="background: #e0e0e0; color: #333;">Low BLAS</span>
+        </div>
+        <p><strong>Module:</strong> AMD (Approximate Minimum Degree)</p>
+        <p style="margin-top: 10px;">Tests basic sparse matrix ordering operations. Primarily integer operations with minimal BLAS usage.</p>
+        <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+            <strong>Typical Time:</strong> 0.01-0.03 seconds<br>
+            <strong>BLAS Impact:</strong> Minimal (< 5%)
+        </p>
+    </div>
+
+    <div class="module-card" style="cursor: pointer;" onclick="location.href='/benchmarks/CHOLMOD_quick'">
+        <h3>CHOLMOD_quick</h3>
+        <div style="margin-bottom: 10px;">
+            <span class="badge badge-blas">BLAS Level 3</span>
+            <span class="badge badge-sparse">Factorization</span>
+        </div>
+        <p><strong>Module:</strong> CHOLMOD (Sparse Cholesky)</p>
+        <p style="margin-top: 10px;">Supernodal Cholesky factorization benchmark. Heavy use of dense matrix operations via BLAS.</p>
+        <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+            <strong>Typical Time:</strong> 0.02-0.04 seconds<br>
+            <strong>BLAS Impact:</strong> High (70-80%)
+        </p>
+    </div>
+
+    <div class="module-card" style="cursor: pointer;" onclick="location.href='/benchmarks/UMFPACK_quick'">
+        <h3>UMFPACK_quick</h3>
+        <div style="margin-bottom: 10px;">
+            <span class="badge badge-blas">BLAS Level 3</span>
+            <span class="badge badge-sparse">Factorization</span>
+        </div>
+        <p><strong>Module:</strong> UMFPACK (Multifrontal LU)</p>
+        <p style="margin-top: 10px;">Unsymmetric LU factorization with partial pivoting. Extensive BLAS Level 3 usage.</p>
+        <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+            <strong>Typical Time:</strong> 0.02-0.04 seconds<br>
+            <strong>BLAS Impact:</strong> High (60-75%)
+        </p>
+    </div>
+
+    <div class="module-card" style="cursor: pointer;" onclick="location.href='/benchmarks/GraphBLAS_quick'">
+        <h3>GraphBLAS_quick</h3>
+        <div style="margin-bottom: 10px;">
+            <span class="badge badge-graph">Graph Algorithms</span>
+            <span class="badge" style="background: #ff9800; color: white;">Custom Kernels</span>
+        </div>
+        <p><strong>Module:</strong> GraphBLAS (Graph Algorithms)</p>
+        <p style="margin-top: 10px;">Graph matrix operations using custom optimized kernels. Moderate BLAS interaction.</p>
+        <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+            <strong>Typical Time:</strong> 0.02-0.05 seconds<br>
+            <strong>BLAS Impact:</strong> Medium (30-40%)
+        </p>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 25px;">
+    <div class="card-header">
+        <h2>📊 Benchmark Categories</h2>
+    </div>
+    <div class="card-body">
+        <table>
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>BLAS Impact</th>
+                    <th>Benchmarks</th>
+                    <th>Key Metric</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Ordering</strong></td>
+                    <td>Low (< 10%)</td>
+                    <td>AMD_simple</td>
+                    <td>Algorithm efficiency</td>
+                </tr>
+                <tr>
+                    <td><strong>Factorization</strong></td>
+                    <td>High (60-80%)</td>
+                    <td>CHOLMOD_quick, UMFPACK_quick</td>
+                    <td>BLAS performance</td>
+                </tr>
+                <tr>
+                    <td><strong>Graph Operations</strong></td>
+                    <td>Medium (30-40%)</td>
+                    <td>GraphBLAS_quick</td>
+                    <td>Kernel + BLAS mix</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div style="margin-top: 25px; padding: 20px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+            <h3 style="margin-bottom: 10px; color: #856404;">💡 Benchmark Interpretation</h3>
+            <p style="color: #856404;">
+                <strong>BLAS-intensive benchmarks</strong> (CHOLMOD, UMFPACK) show the largest performance differences between BLAS vendors.
+                These are the critical tests for evaluating BLAS implementations. <strong>Ordering benchmarks</strong> (AMD) serve as
+                control tests to ensure consistent system behavior.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

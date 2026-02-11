@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Benchmark Results{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>📊 Benchmark Results</h2>
+    </div>
+    <div class="card-body">
+        <p>Performance comparison across different BLAS implementations</p>
+
+        <div class="chart-container">
+            <canvas id="chart"></canvas>
+        </div>
+
+        <div id="metadata" style="margin-top: 30px; padding: 20px; background: #f5f7fa; border-radius: 8px;"></div>
+    </div>
+</div>
+
+<div class="card" style="text-align: center; padding: 30px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+    <h3 style="margin-bottom: 15px;">📈 View All Benchmark Runs</h3>
+    <p style="color: #666; margin-bottom: 20px;">Explore the complete history of benchmark executions</p>
+    <a href="/runs" style="display: inline-block; padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        View All Runs →
+    </a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Load latest benchmark results
+fetch('/api/latest')
+    .then(r => r.json())
+    .then(data => {
+        // Create chart
+        new Chart(document.getElementById('chart'), {
+            type: 'bar',
+            data: {
+                labels: data.results.tests,
+                datasets: data.results.blas_implementations.map((blas, i) => ({
+                    label: blas,
+                    data: data.results.tests.map(t => data.results.data[blas][t]),
+                    backgroundColor: ['rgba(102, 126, 234, 0.8)', 'rgba(118, 75, 162, 0.8)', 'rgba(245, 87, 108, 0.8)'][i],
+                    borderColor: ['rgb(102, 126, 234)', 'rgb(118, 75, 162)', 'rgb(245, 87, 108)'][i],
+                    borderWidth: 2
+                }))
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Latest Benchmark Results - Time (seconds, lower is better)',
+                        font: { size: 16 }
+                    },
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Time (seconds)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Display metadata
+        const metadata = document.getElementById('metadata');
+        metadata.innerHTML = `
+            <h3 style="margin-bottom: 15px;">Run Information</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                <div><strong>Filename:</strong> ${data.metadata.filename}</div>
+                <div><strong>Timestamp:</strong> ${data.metadata.timestamp}</div>
+                <div><strong>BLAS Implementations:</strong> ${data.results.blas_implementations.join(', ')}</div>
+                <div><strong>Tests:</strong> ${data.results.tests.join(', ')}</div>
+            </div>
+        `;
+    })
+    .catch(err => {
+        document.getElementById('chart').parentElement.innerHTML = '<p style="color: #f5576c; text-align: center;">Failed to load results. Please ensure database has benchmark data.</p>';
+    });
+</script>
+{% endblock %}

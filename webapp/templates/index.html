@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SuiteSparse BLAS Benchmark</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+    <style>
+        body { font-family: system-ui; background: linear-gradient(135deg, #667eea, #764ba2); padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .card { background: white; border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        h1 { color: white; text-align: center; }
+        .chart-container { height: 400px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 SuiteSparse BLAS Benchmark Results</h1>
+        <div class="card">
+            <div class="chart-container"><canvas id="chart"></canvas></div>
+        </div>
+    </div>
+    <script>
+        fetch('/api/latest').then(r => r.json()).then(data => {
+            new Chart(document.getElementById('chart'), {
+                type: 'bar',
+                data: {
+                    labels: data.results.tests,
+                    datasets: data.results.blas_implementations.map(blas => ({
+                        label: blas,
+                        data: data.results.tests.map(t => data.results.data[blas][t])
+                    }))
+                }
+            });
+        });
+    </script>
+</body>
+</html>

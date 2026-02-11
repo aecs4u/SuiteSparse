@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block title %}Test Systems{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="header">
+        <h1>💻 Benchmark Test Systems</h1>
+        <p>Hardware configurations used for benchmarking SuiteSparse with different BLAS implementations</p>
+    </div>
+
+    <div class="card">
+        <h2>System Overview</h2>
+        <div id="systems-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-top: 20px;">
+            <div style="text-align: center; padding: 40px; color: #999;">
+                Loading system information...
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Benchmark History by System</h2>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                <thead>
+                    <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                        <th style="padding: 12px; text-align: left;">System</th>
+                        <th style="padding: 12px; text-align: center;">CPU</th>
+                        <th style="padding: 12px; text-align: center;">Memory</th>
+                        <th style="padding: 12px; text-align: center;">Cores</th>
+                        <th style="padding: 12px; text-align: center;">Total Runs</th>
+                        <th style="padding: 12px; text-align: center;">Latest Run</th>
+                        <th style="padding: 12px; text-align: center;">BLAS Tested</th>
+                    </tr>
+                </thead>
+                <tbody id="systems-table">
+                    <tr>
+                        <td colspan="6" style="padding: 20px; text-align: center; color: #999;">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card" id="performance-comparison-card" style="display: none;">
+        <h2>Performance Comparison Across Systems</h2>
+        <p style="margin-bottom: 15px; color: #666;">Average execution time by system and BLAS vendor</p>
+        <canvas id="performance-comparison-chart"></canvas>
+    </div>
+</div>
+
+<script>
+async function loadSystemsData() {
+    try {
+        const response = await fetch('/api/systems');
+        if (!response.ok) {
+            throw new Error('Failed to load systems data');
+        }
+
+        const data = await response.json();
+
+        if (!data.systems || data.systems.length === 0) {
+            document.getElementById('systems-grid').innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #999; grid-column: 1 / -1;">
+                    <h3>No system data available</h3>
+                    <p style="margin-top: 10px;">Run benchmarks to collect system information</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Render system cards
+        renderSystemCards(data.systems);
+
+        // Render systems table
+        renderSystemsTable(data.systems);
+
+        // Render performance comparison if we have data
+        if (data.performance_by_system) {
+            renderPerformanceComparison(data.performance_by_system);
+        }
+
+    } catch (error) {
+        console.error('Error loading systems data:', error);
+        document.getElementById('systems-grid').innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #e74c3c; grid-column: 1 / -1;">
+                <h3>❌ Error Loading Systems</h3>
+                <p style="margin-top: 10px;">Database may not be available or initialized</p>
+            </div>
+        `;
+    }
+}
+
+function renderSystemCards(systems) {
+    const grid = document.getElementById('systems-grid');
+
+    const vendorColors = {
+        'AMD': '#ed1c24',
+        'Intel': '#0071c5',
+        'ARM': '#00bec7',
+        'GenuineIntel': '#0071c5',
+        'AuthenticAMD': '#ed1c24'
+    };
+
+    grid.innerHTML = systems.map(system => {
+        const color = vendorColors[system.cpu_vendor] || '#667eea';
+        const vendorEmoji = system.cpu_vendor.includes('Intel') || system.cpu_vendor === 'GenuineIntel' ? '🔷' :
+                           system.cpu_vendor.includes('AMD') || system.cpu_vendor === 'AuthenticAMD' ? '🔴' : '💻';
+
+        return `
+            <div style="padding: 20px; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 4px solid ${color};">
+                <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                    <span style="font-size: 32px; margin-right: 12px;">${vendorEmoji}</span>
+                    <div>
+                        <h3 style="margin: 0; font-size: 16px; color: #333;">${system.cpu_vendor}</h3>
+                        <div style="font-size: 12px; color: #999; margin-top: 2px;">${system.total_runs} benchmark run${system.total_runs !== 1 ? 's' : ''}</div>
+                    </div>
+                </div>
+
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 12px;">
+                    <div style="font-size: 13px; font-weight: 600; color: #555; margin-bottom: 8px;">
+                        ${system.cpu_model}
+                    </div>
+                    <div style="font-size: 11px; color: #666; line-height: 1.6;">
+                        ${system.hostname ? `<div><strong>Host:</strong> ${system.hostname}</div>` : ''}
+                        ${system.kernel ? `<div><strong>Kernel:</strong> ${system.kernel}</div>` : ''}
+                        <div><strong>Cores:</strong> ${system.cpu_cores} ${system.threads ? `(${system.threads} threads)` : ''}</div>
+                        ${system.memory_gb ? `<div><strong>Memory:</strong> ${system.memory_gb} GB</div>` : ''}
+                        ${system.cpu_governor ? `<div><strong>Governor:</strong> ${system.cpu_governor}</div>` : ''}
+                        <div><strong>Last run:</strong> ${new Date(system.latest_run).toLocaleDateString()}</div>
+                    </div>
+                </div>
+
+                <div style="font-size: 12px; color: #666;">
+                    <strong>BLAS Implementations Tested:</strong>
+                    <div style="margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px;">
+                        ${system.blas_vendors.map(blas => `
+                            <span style="padding: 4px 10px; background: ${color}15; color: ${color}; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                ${blas}
+                            </span>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderSystemsTable(systems) {
+    const tbody = document.getElementById('systems-table');
+
+    tbody.innerHTML = systems.map(system => `
+        <tr style="border-bottom: 1px solid #f0f0f0;">
+            <td style="padding: 12px;">
+                <div style="font-weight: 500;">${system.hostname || 'Unknown'}</div>
+                <div style="font-size: 11px; color: #999; margin-top: 2px;">
+                    ${system.kernel || 'Unknown kernel'}
+                    ${system.cpu_governor ? ` · ${system.cpu_governor}` : ''}
+                </div>
+            </td>
+            <td style="padding: 12px; text-align: center;">
+                <div>${system.cpu_vendor}</div>
+                <div style="font-size: 11px; color: #666; margin-top: 2px;">${system.cpu_model}</div>
+            </td>
+            <td style="padding: 12px; text-align: center;">${system.memory_gb ? system.memory_gb + ' GB' : '-'}</td>
+            <td style="padding: 12px; text-align: center;">
+                ${system.cpu_cores}
+                ${system.threads ? `<div style="font-size: 10px; color: #999;">(${system.threads} threads)</div>` : ''}
+            </td>
+            <td style="padding: 12px; text-align: center;">${system.total_runs}</td>
+            <td style="padding: 12px; text-align: center; font-family: monospace; font-size: 12px;">
+                ${new Date(system.latest_run).toLocaleString()}
+            </td>
+            <td style="padding: 12px; text-align: center;">
+                ${system.blas_vendors.map(blas => `<span style="padding: 2px 8px; background: #f0f0f0; border-radius: 4px; margin: 0 2px; font-size: 11px;">${blas}</span>`).join('')}
+            </td>
+        </tr>
+    `).join('');
+}
+
+function renderPerformanceComparison(perfData) {
+    document.getElementById('performance-comparison-card').style.display = 'block';
+    const ctx = document.getElementById('performance-comparison-chart').getContext('2d');
+
+    const colors = {
+        'Intel MKL': '#0071c5',
+        'OpenBLAS': '#e74c3c',
+        'BLIS': '#27ae60',
+        'default': '#95a5a6'
+    };
+
+    // Organize data by system and BLAS
+    const systems = [...new Set(perfData.map(d => d.cpu_model))];
+    const blasVendors = [...new Set(perfData.map(d => d.blas_vendor))];
+
+    const datasets = blasVendors.map(blas => ({
+        label: blas,
+        data: systems.map(sys => {
+            const entry = perfData.find(d => d.cpu_model === sys && d.blas_vendor === blas);
+            return entry ? entry.avg_time : null;
+        }),
+        backgroundColor: colors[blas] || colors.default,
+        borderColor: colors[blas] || colors.default,
+        borderWidth: 1
+    }));
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: systems,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${context.parsed.y.toFixed(6)} sec (avg)`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Average Time (seconds)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'CPU Model'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Load data on page load
+loadSystemsData();
+</script>
+{% endblock %}

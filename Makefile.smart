@@ -1,0 +1,73 @@
+# Smart Makefile for SuiteSparse
+# Only rebuilds when source code has changed
+#
+# Usage:
+#   make              - Build only if sources changed
+#   make force        - Force rebuild
+#   make clean        - Clean build directory
+#   make install      - Install after building
+#   make test         - Run tests after building
+#   make openblas     - Build with OpenBLAS
+#   make mkl          - Build with Intel MKL
+#   make blis         - Build with BLIS
+
+.PHONY: all force clean install test help openblas mkl blis
+
+# Default target
+all:
+	@./smart_build.sh
+
+# Force rebuild
+force:
+	@./smart_build.sh --force
+
+# Clean build
+clean:
+	@./smart_build.sh --clean
+
+# Install
+install: all
+	@echo "Installing SuiteSparse..."
+	@cd build && sudo cmake --install .
+
+# Run tests
+test: all
+	@echo "Running tests..."
+	@cd build && ctest --output-on-failure
+
+# Verbose build
+verbose:
+	@./smart_build.sh --force --verbose
+
+# BLAS-specific builds
+openblas:
+	@echo "Building with OpenBLAS..."
+	@BLA_VENDOR=OpenBLAS BUILD_DIR=build_openblas ./smart_build.sh
+
+mkl:
+	@echo "Building with Intel MKL..."
+	@BLA_VENDOR=Intel10_64lp BUILD_DIR=build_mkl ./smart_build.sh
+
+blis:
+	@echo "Building with BLIS..."
+	@BLA_VENDOR=BLIS BUILD_DIR=build_blis ./smart_build.sh
+
+# Help
+help:
+	@echo "SuiteSparse Smart Build System"
+	@echo ""
+	@echo "Targets:"
+	@echo "  make            - Build only if sources changed (default)"
+	@echo "  make force      - Force rebuild regardless of changes"
+	@echo "  make clean      - Clean build directory"
+	@echo "  make verbose    - Verbose build output"
+	@echo "  make install    - Install SuiteSparse"
+	@echo "  make test       - Run tests"
+	@echo ""
+	@echo "BLAS-specific builds:"
+	@echo "  make openblas   - Build with OpenBLAS"
+	@echo "  make mkl        - Build with Intel MKL"
+	@echo "  make blis       - Build with BLIS"
+	@echo ""
+	@echo "Direct script usage:"
+	@echo "  ./smart_build.sh --help"

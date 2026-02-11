@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}SuiteSparse Modules{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>📦 SuiteSparse Modules</h2>
+    </div>
+    <div class="card-body">
+        <p>SuiteSparse is a suite of sparse matrix algorithms. Each module specializes in different aspects of sparse matrix computation.</p>
+    </div>
+</div>
+
+<div class="module-grid">
+    <div class="module-card">
+        <h3>AMD - Approximate Minimum Degree</h3>
+        <div style="margin-bottom: 10px;">
+            <span class="badge badge-sparse">Ordering</span>
+        </div>
+        <p>Symmetric approximate minimum degree permutation. Reduces fill-in for sparse Cholesky and LU factorizations.</p>
+        <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+            <strong>Use Case:</strong> Sparse matrix reordering for factorization
+        </p>
+    </div>
+
+    <div class="module-card">
+        <h3>CHOLMOD - Sparse Cholesky</h3>
+        <div style="margin-bottom: 10px;">
+            <span class="badge badge-blas">BLAS Intensive</span>
+            <span class="badge badge-sparse">Factorization</span>
+        </div>
+        <p>Supernodal sparse Cholesky factorization and update/downdate. Heavily uses BLAS Level 3 operations.</p>
+        <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+            <strong>Use Case:</strong> Positive definite systems, least squares
+        </p>
+    </div>
+
+    <div class="module-card">
+        <h3>UMFPACK - Multifrontal LU</h3>
+        <div style="margin-bottom: 10px;">
+            <span class="badge badge-blas">BLAS Intensive</span>
+            <span class="badge badge-sparse">Factorization</span>
+        </div>
+        <p>Unsymmetric multifrontal sparse LU factorization. Solves general sparse systems using BLAS Level 3.</p>
+        <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+            <strong>Use Case:</strong> General sparse linear systems
+        </p>
+    </div>
+
+    <div class="module-card">
+        <h3>GraphBLAS - Graph Algorithms</h3>
+        <div style="margin-bottom: 10px;">
+            <span class="badge badge-graph">Graph Theory</span>
+            <span class="badge badge-blas">Custom Kernels</span>
+        </div>
+        <p>Graph algorithms in the language of linear algebra. Implements the GraphBLAS C API standard.</p>
+        <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+            <strong>Use Case:</strong> Graph analytics, network analysis
+        </p>
+    </div>
+
+    <div class="module-card">
+        <h3>KLU - Circuit Simulation</h3>
+        <div style="margin-bottom: 10px;">
+            <span class="badge badge-sparse">Factorization</span>
+        </div>
+        <p>Sparse LU factorization optimized for circuit simulation matrices with partial pivoting.</p>
+        <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+            <strong>Use Case:</strong> Circuit simulation, power networks
+        </p>
+    </div>
+
+    <div class="module-card">
+        <h3>SPQR - Sparse QR</h3>
+        <div style="margin-bottom: 10px;">
+            <span class="badge badge-blas">BLAS Intensive</span>
+            <span class="badge badge-sparse">Factorization</span>
+        </div>
+        <p>Multifrontal sparse QR factorization for sparse least squares problems.</p>
+        <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+            <strong>Use Case:</strong> Sparse least squares, rank detection
+        </p>
+    </div>
+
+    <div class="module-card">
+        <h3>BTF - Block Triangular Form</h3>
+        <div style="margin-bottom: 10px;">
+            <span class="badge badge-sparse">Ordering</span>
+        </div>
+        <p>Permutes a matrix into block upper triangular form for easier solution.</p>
+        <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+            <strong>Use Case:</strong> Decomposing systems into independent blocks
+        </p>
+    </div>
+
+    <div class="module-card">
+        <h3>COLAMD - Column AMD</h3>
+        <div style="margin-bottom: 10px;">
+            <span class="badge badge-sparse">Ordering</span>
+        </div>
+        <p>Column approximate minimum degree permutation for sparse QR and Cholesky on A'A.</p>
+        <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+            <strong>Use Case:</strong> Ordering for QR factorization
+        </p>
+    </div>
+
+    <div class="module-card">
+        <h3>ParU - Parallel LU</h3>
+        <div style="margin-bottom: 10px;">
+            <span class="badge badge-blas">Parallel</span>
+            <span class="badge badge-sparse">Factorization</span>
+        </div>
+        <p>Parallel multifrontal sparse LU factorization with OpenMP acceleration.</p>
+        <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+            <strong>Use Case:</strong> Large-scale parallel sparse solvers
+        </p>
+    </div>
+
+    <div class="module-card">
+        <h3>LAGraph - Graph Algorithms</h3>
+        <div style="margin-bottom: 10px;">
+            <span class="badge badge-graph">Graph Theory</span>
+        </div>
+        <p>Library of graph algorithms built on top of GraphBLAS.</p>
+        <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+            <strong>Use Case:</strong> High-level graph analytics
+        </p>
+    </div>
+
+    <div class="module-card">
+        <h3>SPEX - Exact Arithmetic</h3>
+        <div style="margin-bottom: 10px;">
+            <span class="badge badge-sparse">Exact</span>
+        </div>
+        <p>Sparse exact arithmetic for solving systems with rational numbers.</p>
+        <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+            <strong>Use Case:</strong> Problems requiring exact solutions
+        </p>
+    </div>
+
+    <div class="module-card">
+        <h3>Mongoose - Graph Partitioning</h3>
+        <div style="margin-bottom: 10px;">
+            <span class="badge badge-graph">Partitioning</span>
+        </div>
+        <p>Graph partitioning and coarsening for sparse matrix computations.</p>
+        <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+            <strong>Use Case:</strong> Graph partitioning, load balancing
+        </p>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 25px;">
+    <div class="card-header">
+        <h2>🎯 BLAS Impact on Performance</h2>
+    </div>
+    <div class="card-body">
+        <p>Modules marked with <span class="badge badge-blas">BLAS Intensive</span> show the most significant performance differences between BLAS implementations:</p>
+        <ul style="margin-top: 15px; margin-left: 20px; line-height: 2;">
+            <li><strong>CHOLMOD:</strong> Up to 30% performance difference between BLAS vendors</li>
+            <li><strong>UMFPACK:</strong> 15-25% performance variation depending on matrix structure</li>
+            <li><strong>SPQR:</strong> 20-40% difference in least squares problems</li>
+        </ul>
+        <p style="margin-top: 15px;">
+            These modules spend 70-90% of their time in BLAS Level 3 operations (matrix-matrix multiply),
+            making BLAS selection critical for optimal performance.
+        </p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,439 @@
+{% extends "base.html" %}
+
+{% block title %}Run Details{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="header">
+        <h1>📊 Benchmark Run Details</h1>
+        <p>Comprehensive results for benchmark execution: <strong id="run-name">Loading...</strong></p>
+    </div>
+
+    <div class="card" id="metadata-card" style="display: none;">
+        <h2>Run Metadata</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 15px;">
+            <div>
+                <strong>Timestamp:</strong>
+                <div id="run-timestamp" style="color: #667eea; margin-top: 5px;">-</div>
+            </div>
+            <div id="hostname-div" style="display: none;">
+                <strong>Hostname:</strong>
+                <div id="hostname" style="color: #667eea; margin-top: 5px;">-</div>
+            </div>
+            <div id="kernel-div" style="display: none;">
+                <strong>Kernel:</strong>
+                <div id="kernel" style="color: #667eea; margin-top: 5px;">-</div>
+            </div>
+            <div>
+                <strong>CPU Model:</strong>
+                <div id="cpu-model" style="color: #667eea; margin-top: 5px;">-</div>
+            </div>
+            <div>
+                <strong>CPU Vendor:</strong>
+                <div id="cpu-vendor" style="color: #667eea; margin-top: 5px;">-</div>
+            </div>
+            <div>
+                <strong>CPU Cores:</strong>
+                <div id="cpu-cores" style="color: #667eea; margin-top: 5px;">-</div>
+            </div>
+            <div id="threads-div" style="display: none;">
+                <strong>Threads:</strong>
+                <div id="threads" style="color: #667eea; margin-top: 5px;">-</div>
+            </div>
+            <div id="memory-gb-div" style="display: none;">
+                <strong>Memory:</strong>
+                <div id="memory-gb" style="color: #667eea; margin-top: 5px;">-</div>
+            </div>
+            <div id="cpu-governor-div" style="display: none;">
+                <strong>CPU Governor:</strong>
+                <div id="cpu-governor" style="color: #667eea; margin-top: 5px;">-</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Performance Comparison by Test</h2>
+        <canvas id="performance-chart"></canvas>
+    </div>
+
+    <div class="card">
+        <h2>Speedup Comparison</h2>
+        <p style="margin-bottom: 15px; color: #666;">Relative performance (100% = slowest implementation)</p>
+        <canvas id="speedup-chart"></canvas>
+    </div>
+
+    <div class="card" id="memory-card" style="display: none;">
+        <h2>Memory Usage</h2>
+        <canvas id="memory-chart"></canvas>
+    </div>
+
+    <div class="card">
+        <h2>Detailed Results</h2>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                <thead>
+                    <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                        <th style="padding: 12px; text-align: left;">BLAS Implementation</th>
+                        <th style="padding: 12px; text-align: left;">Test</th>
+                        <th style="padding: 12px; text-align: right;">Time (sec)</th>
+                        <th style="padding: 12px; text-align: right;">Relative</th>
+                    </tr>
+                </thead>
+                <tbody id="results-table">
+                    <tr>
+                        <td colspan="4" style="padding: 20px; text-align: center; color: #999;">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Summary Statistics</h2>
+        <div id="summary-stats">
+            <p style="color: #999;">Loading statistics...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+const resultCode = "{{ result_code }}";
+
+async function loadResultDetails() {
+    try {
+        const response = await fetch(`/api/results/${encodeURIComponent(resultCode)}`);
+        if (!response.ok) {
+            throw new Error('Result not found');
+        }
+
+        const data = await response.json();
+
+        // Update run name and metadata
+        document.getElementById('run-name').textContent = data.metadata.filename;
+        document.getElementById('run-timestamp').textContent = data.metadata.timestamp;
+
+        // Show metadata card if we have CPU info
+        if (data.metadata.cpu_model || data.metadata.cpu_cores || data.metadata.cpu_vendor) {
+            document.getElementById('cpu-model').textContent = data.metadata.cpu_model || '-';
+            document.getElementById('cpu-cores').textContent = data.metadata.cpu_cores || '-';
+            document.getElementById('cpu-vendor').textContent = data.metadata.cpu_vendor || '-';
+
+            // Show optional fields if available
+            if (data.metadata.hostname) {
+                document.getElementById('hostname').textContent = data.metadata.hostname;
+                document.getElementById('hostname-div').style.display = 'block';
+            }
+            if (data.metadata.kernel) {
+                document.getElementById('kernel').textContent = data.metadata.kernel;
+                document.getElementById('kernel-div').style.display = 'block';
+            }
+            if (data.metadata.threads) {
+                document.getElementById('threads').textContent = data.metadata.threads;
+                document.getElementById('threads-div').style.display = 'block';
+            }
+            if (data.metadata.memory_gb) {
+                document.getElementById('memory-gb').textContent = data.metadata.memory_gb + ' GB';
+                document.getElementById('memory-gb-div').style.display = 'block';
+            }
+            if (data.metadata.cpu_governor) {
+                document.getElementById('cpu-governor').textContent = data.metadata.cpu_governor;
+                document.getElementById('cpu-governor-div').style.display = 'block';
+            }
+
+            document.getElementById('metadata-card').style.display = 'block';
+        }
+
+        // Render performance chart
+        renderPerformanceChart(data.results);
+
+        // Render speedup chart
+        renderSpeedupChart(data.speedup);
+
+        // Render memory chart if data exists
+        if (data.metadata.memory && Object.keys(data.metadata.memory).length > 0) {
+            document.getElementById('memory-card').style.display = 'block';
+            renderMemoryChart(data.metadata.memory);
+        }
+
+        // Render results table
+        renderResultsTable(data.results);
+
+        // Render summary statistics
+        renderSummaryStats(data.results, data.speedup);
+
+    } catch (error) {
+        console.error('Error loading result details:', error);
+        document.querySelector('.container').innerHTML = `
+            <div class="card" style="text-align: center; padding: 40px;">
+                <h2 style="color: #e74c3c;">❌ Error Loading Results</h2>
+                <p style="margin-top: 15px;">Result "${resultCode}" not found.</p>
+                <a href="/results" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 6px;">← Back to Results</a>
+            </div>
+        `;
+    }
+}
+
+function renderPerformanceChart(results) {
+    const ctx = document.getElementById('performance-chart').getContext('2d');
+
+    const colors = {
+        'Intel MKL': '#0071c5',
+        'OpenBLAS': '#e74c3c',
+        'BLIS': '#27ae60',
+        'default': '#95a5a6'
+    };
+
+    const datasets = results.blas_implementations.map(blas => ({
+        label: blas,
+        data: results.tests.map(test => results.data[blas]?.[test] || null),
+        backgroundColor: colors[blas] || colors.default,
+        borderColor: colors[blas] || colors.default,
+        borderWidth: 1
+    }));
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: results.tests,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${context.parsed.y.toFixed(6)} sec`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Time (seconds)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function renderSpeedupChart(speedup) {
+    const ctx = document.getElementById('speedup-chart').getContext('2d');
+
+    const tests = Object.keys(speedup);
+    const blasImpls = tests.length > 0 ? Object.keys(speedup[tests[0]]) : [];
+
+    const colors = {
+        'Intel MKL': '#0071c5',
+        'OpenBLAS': '#e74c3c',
+        'BLIS': '#27ae60',
+        'default': '#95a5a6'
+    };
+
+    const datasets = blasImpls.map(blas => ({
+        label: blas,
+        data: tests.map(test => speedup[test]?.[blas] || null),
+        backgroundColor: colors[blas] || colors.default,
+        borderColor: colors[blas] || colors.default,
+        borderWidth: 1
+    }));
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: tests,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${context.parsed.y.toFixed(1)}%`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Relative Performance (%)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function renderMemoryChart(memoryData) {
+    const ctx = document.getElementById('memory-chart').getContext('2d');
+
+    const colors = {
+        'Intel MKL': '#0071c5',
+        'OpenBLAS': '#e74c3c',
+        'BLIS': '#27ae60',
+        'default': '#95a5a6'
+    };
+
+    const labels = Object.keys(memoryData);
+    const data = Object.values(memoryData);
+    const backgroundColors = labels.map(blas => colors[blas] || colors.default);
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Memory Usage',
+                data: data,
+                backgroundColor: backgroundColors,
+                borderColor: backgroundColors,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `Memory: ${context.parsed.y.toFixed(1)} MB`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Memory (MB)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function renderResultsTable(results) {
+    const tbody = document.getElementById('results-table');
+    tbody.innerHTML = '';
+
+    // Calculate fastest time for each test for relative comparison
+    const fastestTimes = {};
+    results.tests.forEach(test => {
+        const times = results.blas_implementations
+            .map(blas => results.data[blas]?.[test])
+            .filter(t => t != null);
+        fastestTimes[test] = Math.min(...times);
+    });
+
+    // Build table rows
+    results.blas_implementations.forEach(blas => {
+        results.tests.forEach(test => {
+            const time = results.data[blas]?.[test];
+            if (time != null) {
+                const relative = (time / fastestTimes[test]).toFixed(2);
+                const isFastest = time === fastestTimes[test];
+
+                const row = document.createElement('tr');
+                row.style.borderBottom = '1px solid #f0f0f0';
+                if (isFastest) {
+                    row.style.background = '#f0f9ff';
+                }
+
+                row.innerHTML = `
+                    <td style="padding: 12px;">
+                        ${blas}
+                        ${isFastest ? '<span style="color: #27ae60; margin-left: 8px;">⚡ Fastest</span>' : ''}
+                    </td>
+                    <td style="padding: 12px;">${test}</td>
+                    <td style="padding: 12px; text-align: right; font-family: monospace;">${time.toFixed(6)}</td>
+                    <td style="padding: 12px; text-align: right; font-family: monospace;">${relative}x</td>
+                `;
+                tbody.appendChild(row);
+            }
+        });
+    });
+}
+
+function renderSummaryStats(results, speedup) {
+    const statsDiv = document.getElementById('summary-stats');
+
+    // Calculate overall statistics for each BLAS implementation
+    const stats = {};
+    results.blas_implementations.forEach(blas => {
+        const times = results.tests.map(test => results.data[blas]?.[test]).filter(t => t != null);
+        const speedups = results.tests.map(test => speedup[test]?.[blas]).filter(s => s != null);
+
+        stats[blas] = {
+            totalTime: times.reduce((a, b) => a + b, 0),
+            avgTime: times.reduce((a, b) => a + b, 0) / times.length,
+            avgSpeedup: speedups.reduce((a, b) => a + b, 0) / speedups.length,
+            testsCompleted: times.length
+        };
+    });
+
+    // Find the best overall performer
+    const bestBlas = Object.entries(stats).reduce((best, [blas, stat]) =>
+        !best || stat.totalTime < best[1].totalTime ? [blas, stat] : best
+    , null);
+
+    statsDiv.innerHTML = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+            ${results.blas_implementations.map(blas => {
+                const stat = stats[blas];
+                const isBest = blas === bestBlas[0];
+                return `
+                    <div style="padding: 15px; background: ${isBest ? '#f0f9ff' : '#f8f9fa'}; border-radius: 8px; border: ${isBest ? '2px solid #27ae60' : '1px solid #dee2e6'};">
+                        <h3 style="margin-bottom: 10px; color: ${isBest ? '#27ae60' : '#333'};">
+                            ${blas}
+                            ${isBest ? ' 🏆' : ''}
+                        </h3>
+                        <div style="font-size: 14px; color: #666; line-height: 1.8;">
+                            <div><strong>Total Time:</strong> ${stat.totalTime.toFixed(4)} sec</div>
+                            <div><strong>Average Time:</strong> ${stat.avgTime.toFixed(6)} sec</div>
+                            <div><strong>Avg Performance:</strong> ${stat.avgSpeedup.toFixed(1)}%</div>
+                            <div><strong>Tests Completed:</strong> ${stat.testsCompleted}/${results.tests.length}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+
+        ${bestBlas ? `
+            <div style="margin-top: 20px; padding: 15px; background: #d4edda; border-radius: 8px; border: 1px solid #c3e6cb;">
+                <strong style="color: #155724;">💡 Recommendation:</strong>
+                <span style="color: #155724;">
+                    ${bestBlas[0]} performed best overall with a total execution time of ${bestBlas[1].totalTime.toFixed(4)} seconds.
+                </span>
+            </div>
+        ` : ''}
+    `;
+}
+
+// Load data on page load
+loadResultDetails();
+</script>
+{% endblock %}
