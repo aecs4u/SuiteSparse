@@ -221,12 +221,48 @@ ssget/files/ssstats_old.csv
 !.gitignore
 
 
-# Smart Build System artifacts
+# Build directories and artifacts
 build/
 build_*/
-/mnt/mobile/tmp/SuiteSparse/
+build-*/
+cmake-build-*/
+out/
+dist/
+target/
+_build/
+.build/
 .build_state
 .smart_build/
+
+# CMake artifacts
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+Makefile.cmake
+*.cmake.in.configured
+install_manifest.txt
+compile_commands.json
+CTestConfiguration.ini
+
+# Build logs
+*.log
+build*.log
+cmake*.log
+make*.log
+
+# Temporary directories
+tmp/
+temp/
+.tmp/
+.temp/
+/mnt/mobile/tmp/SuiteSparse/
+/tmp/suitesparse*/
+
+# Testing output
+Testing/
+CTestTestfile.cmake
+LastTest.log
 
 # Benchmark results
 benchmarks/results/*.txt
