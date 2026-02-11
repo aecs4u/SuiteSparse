@@ -113,6 +113,7 @@ Int UMF_transpose
 
     /* use W as workspace for RowCount */
 
+    UMFPACK_IVDEP
     for (i = 0 ; i < n_row ; i++)
     {
 	W [i] = 0 ;
@@ -173,6 +174,7 @@ Int UMF_transpose
 	{
 	    Rp [i+1] = Rp [i] + W [i] ;
 	}
+	UMFPACK_IVDEP
 	for (i = 0 ; i < n_row ; i++)
 	{
 	    W [i] = Rp [i] ;

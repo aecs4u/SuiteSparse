@@ -71,6 +71,8 @@ include_directories ( Source Include )
 # dynamic camd library properties
 #-------------------------------------------------------------------------------
 
+# CAMD (Constrained AMD) ordering algorithm with constraint sets.
+# Source/ contains int32/int64 variants for constrained sparse matrix ordering.
 file ( GLOB CAMD_SOURCES "Source/*.c" )
 
 if ( BUILD_SHARED_LIBS )

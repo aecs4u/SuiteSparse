@@ -79,7 +79,7 @@ else
       #Compiler information
       CC = gcc
       OPTFLAGS = -O6 
-      COPTIONS = -DLINUX -D_FILE_OFFSET_BITS=64 -pedantic -std=c23  -pthread
+      COPTIONS = -DLINUX -D_FILE_OFFSET_BITS=64 -pedantic -std=c99  -pthread
 
       #Linker information
       LDOPTIONS = 
@@ -94,7 +94,7 @@ else
       #Compiler information
       CC = icc
       OPTFLAGS = -O3 
-      COPTIONS = -DLINUX -D_FILE_OFFSET_BITS=64 -std=c23 
+      COPTIONS = -DLINUX -D_FILE_OFFSET_BITS=64 -std=c99 
 
       #Linker information
       LDOPTIONS = 
@@ -143,7 +143,7 @@ else
     #Compiler information
     CC = gcc
     OPTFLAGS = -O6 
-    COPTIONS = -DDARWIN -D_FILE_OFFSET_BITS=64 -pedantic -std=c23 
+    COPTIONS = -DDARWIN -D_FILE_OFFSET_BITS=64 -pedantic -std=c99 
 
     #Linker information
     LDOPTIONS = -fvisibility=default
@@ -165,7 +165,7 @@ else
     #Compiler information
     CC = gcc
     OPTFLAGS = -O6
-    COPTIONS = -DCYGWIN -DWIN32 -D_FILE_OFFSET_BITS=64 -Wall -std=c23 -pedantic -mno-cygwin
+    COPTIONS = -DCYGWIN -DWIN32 -D_FILE_OFFSET_BITS=64 -Wall -std=c99 -pedantic -mno-cygwin
 
     #Linker information
     LDOPTIONS = -mno-cygwin

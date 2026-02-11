@@ -177,7 +177,7 @@ LIBS = -L../../lib $(FLIB) $(CLIB) $(CUDA_LIB) \
     -Wl,--rpath=$(SUITESPARSE)/lib -lm -lrt
 
 qrtestc.o: qrtestc.c $(INC) qrtestc_template.c
-	$(CC) $(CF) -std=gnu2x $(I) -c $<
+	$(CC) $(CF) -std=c23 $(I) -c $<
 
 qrtest: qrtest.cpp $(INC) $(OBJ)
 	$(C) qrtest.cpp -o qrtest $(OBJ) $(LIBS) -lm

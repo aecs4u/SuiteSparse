@@ -32,7 +32,7 @@ I = -I../../SuiteSparse_config -I../../UMFPACK/Source -I../../UMFPACK/Include \
 
 C = $(CXX) $(CF) $(I) -Wno-write-strings -std=c++11 \
     -DPARU_COVERAGE -DPARU_ALLOC_TESTING -DBLAS32
-#C2 = $(CC) $(CF) $(I) -Wno-write-strings -std=gnu2x
+#C2 = $(CC) $(CF) $(I) -Wno-write-strings -std=c11
 
 all: paru_quick_test paru_brutal_test paru_c_test
 
